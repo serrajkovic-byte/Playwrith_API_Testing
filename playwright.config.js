@@ -21,7 +21,7 @@ export default defineConfig({
 
   use: {
     // Base URL for API requests in tests:
-    // request.get('/Books') -> https://.../api/v1/Books
+    // request.get('Books') -> https://.../api/v1/Books
     baseURL:
       process.env.API_BASE_URL ??
       'https://fakerestapi.azurewebsites.net/api/v1/',

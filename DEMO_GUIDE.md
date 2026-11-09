@@ -4,11 +4,11 @@ This guide explains how to set up, extend, run, report, and present this Playwri
 
 ## 1. What is in this repository now
 
-- `tests/api_tests.spec.js`: three Books API checks (list, get by ID, create).
-- `playwright.config.js`: HTML reporter and Chromium, Firefox, and WebKit projects.
+- `tests/api_tests.spec.js`: six Books API checks covering CRUD and an unknown ID.
+- `playwright.config.js`: configurable API base URL and HTML reporter.
 - `.github/workflows/playwright.yml`: GitHub Actions workflow for push and pull request events.
 - `tests/example.spec.js`: two browser UI examples for playwright.dev. They are unrelated to the bookstore API; exclude them from an API-only run or remove them if the deliverable should contain API tests only.
-- `package.json`: Playwright dependency is present, but no npm convenience scripts are defined yet.
+- `package.json`: Playwright dependency and npm convenience scripts are configured.
 
 The assessment emphasizes the Books API test cases. Authors endpoints are in the overview, but not in the specific test case implementation requirement.
 
@@ -56,7 +56,7 @@ In `playwright.config.js`, set the request base URL under `use`:
 
 ```js
 use: {
-  baseURL: process.env.API_BASE_URL ?? 'https://fakerestapi.azurewebsites.net/api/v1',
+  baseURL: process.env.API_BASE_URL ?? 'https://fakerestapi.azurewebsites.net/api/v1/',
   trace: 'on-first-retry',
 },
 ```
@@ -96,7 +96,7 @@ const newBook = () => ({
 
 test.describe('Books API', () => {
   test('GET /Books returns a non-empty list of books', async ({ request }) => {
-    const response = await request.get('/Books');
+    const response = await request.get('Books');
     expect(response.status()).toBe(200);
     const books = await response.json();
     expect(Array.isArray(books)).toBe(true);
@@ -109,7 +109,7 @@ test.describe('Books API', () => {
   });
 
   test('GET /Books/1 returns the requested book', async ({ request }) => {
-    const response = await request.get('/Books/1');
+    const response = await request.get('Books/1');
     expect(response.status()).toBe(200);
     const book = await response.json();
     expect(book).toEqual(expect.objectContaining({
@@ -121,16 +121,13 @@ test.describe('Books API', () => {
   });
 
   test('GET /Books/{unknown ID} returns a response for a missing book', async ({ request }) => {
-    const response = await request.get('/Books/2147483000');
-    // Confirm expected status/body against the live demo API first.
-    // Mock services can return a default object for unknown IDs.
-    expect([200, 404]).toContain(response.status());
-    if (response.status() === 200) console.log('Unknown ID response:', await response.json());
+    const response = await request.get('Books/2147483000');
+    expect(response.status()).toBe(404);
   });
 
   test('POST /Books accepts a valid book payload', async ({ request }) => {
     const payload = newBook();
-    const response = await request.post('/Books', { data: payload });
+    const response = await request.post('Books', { data: payload });
     expect(response.status()).toBe(200);
     const created = await response.json();
     expect(created).toEqual(expect.objectContaining({
@@ -142,7 +139,7 @@ test.describe('Books API', () => {
 
   test('PUT /Books/1 accepts updated book fields', async ({ request }) => {
     const payload = { ...newBook(), id: 1, title: 'Updated Demo Book' };
-    const response = await request.put('/Books/1', { data: payload });
+    const response = await request.put('Books/1', { data: payload });
     expect(response.status()).toBe(200);
     const updated = await response.json();
     expect(updated).toEqual(expect.objectContaining({
@@ -153,13 +150,13 @@ test.describe('Books API', () => {
   });
 
   test('DELETE /Books/1 accepts a delete request', async ({ request }) => {
-    const response = await request.delete('/Books/1');
+    const response = await request.delete('Books/1');
     expect(response.status()).toBe(200);
   });
 });
 ```
 
-For the unknown ID check, first run the request and observe the service behavior. Replace the exploratory assertion with the exact status and body expectation once verified. For a negative POST test, use an invalid field only if the API documents validation behavior; otherwise the test would invent a contract.
+The unknown ID check expects HTTP 404, matching the observed behavior of this demo API. Keep edge-case expectations tied to behavior verified against the service.
 
 ### Step 4 — Add npm scripts
 
@@ -181,7 +178,7 @@ If you saved the full example as `tests/books_api.spec.js`, change `test:api` to
 ```powershell
 npm test
 npm run test:api
-npx playwright test tests/api_tests.spec.js --project=chromium
+npx playwright test tests/api_tests.spec.js
 npx playwright test --list
 npm run report
 ```
@@ -195,7 +192,7 @@ A 5–8 minute walkthrough:
 1. **Scope:** “This is a Playwright API suite for the FakeRestAPI Online Bookstore Books endpoints.”
 2. **Structure:** show `playwright.config.js`, `tests/api_tests.spec.js`, and `package.json`.
 3. **Assertions:** explain that the GET checks verify both HTTP status and JSON response shape.
-4. **Run:** execute `npm run test:api` (or `npx playwright test tests/api_tests.spec.js --project=chromium`).
+4. **Run:** execute `npm run test:api`.
 5. **Report:** execute `npm run report` and show case status and duration.
 6. **CI:** show `.github/workflows/playwright.yml`; explain the install, test, and report artifact steps.
 7. **Limits:** note that the demo API may simulate writes. Do not claim persistence without a follow-up GET proving it.
