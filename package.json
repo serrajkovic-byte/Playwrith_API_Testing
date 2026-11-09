@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "playwright test",
-    "test:api": "playwright test tests/api_tests.spec.js",
+    "test:api": "playwright test tests/api_BOOKS_tests.spec.js tests/api_AUTHORS_tests.spec.js",
     "test:headed": "playwright test --headed",
     "report": "playwright show-report"
   },

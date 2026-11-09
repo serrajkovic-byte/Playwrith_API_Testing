@@ -1,6 +1,6 @@
 # Bookstore API tests
 
-Playwright API test suite for the Books endpoints of [Fake REST API](https://fakerestapi.azurewebsites.net/). The project uses JavaScript and `@playwright/test`.
+Playwright API test suite for the Books and Authors endpoints of [Fake REST API](https://fakerestapi.azurewebsites.net/). The project uses JavaScript and `@playwright/test`.
 
 ## Requirements
 
@@ -24,7 +24,7 @@ These API tests use Playwright's `request` fixture and do not require browser bi
 
 ```sh
 npm test                 # Run all tests
-npm run test:api          # Run the Books API spec
+npm run test:api          # Run the Books and Authors API specs
 npx playwright test --list # List discovered tests
 npm run report            # Open the HTML report from the latest run
 ```
@@ -33,7 +33,7 @@ The report is generated in `playwright-report/`. Run tests before `npm run repor
 
 ## Test coverage
 
-`tests/api_tests.spec.js` contains six checks:
+`tests/api_BOOKS_tests.spec.js` contains six Books checks:
 
 - `GET /Books`: successful response, non-empty list, and expected fields
 - `GET /Books/1`: successful response and expected book fields
@@ -41,6 +41,15 @@ The report is generated in `playwright-report/`. Run tests before `npm run repor
 - `POST /Books`: successful response containing submitted fields
 - `PUT /Books/1`: successful response containing updated fields
 - `DELETE /Books/1`: successful response
+
+`tests/api_AUTHORS_tests.spec.js` covers the Authors API:
+
+- `GET /Authors`: successful response, non-empty list, and expected author fields
+- `GET /Authors/1`: successful response and expected author fields
+- `GET /Authors/{id}`: 404 for an unknown ID
+- `POST /Authors`: successful response containing submitted author fields
+- `PUT /Authors/1`: successful response containing updated author fields
+- `DELETE /Authors/1`: successful response
 
 Create, update, and delete tests validate the response. They do not claim that the demo service persists changes between requests.
 
@@ -65,7 +74,8 @@ API_BASE_URL=https://example.com/api/v1/ npm run test:api
 
 ```text
 ├── .github/workflows/playwright.yml  # GitHub Actions workflow
-├── tests/api_tests.spec.js           # Books API tests
+├── tests/api_BOOKS_tests.spec.js     # Books API tests
+├── tests/api_AUTHORS_tests.spec.js   # Authors API tests
 ├── playwright.config.js              # Playwright and API configuration
 ├── package.json                      # Dependencies and npm scripts
 └── package-lock.json                 # Locked dependency versions
