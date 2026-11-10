@@ -107,6 +107,25 @@ When adding a new resource:
 
 This keeps the suite consistent and easy to scale.
 
+## Quality checks before commit
+
+Before pushing changes, confirm the following:
+
+- README includes all currently supported resources and their intended scope.
+- Final test files are consolidated under the resource folders and not duplicated by per-operation specs.
+- Shared helper, request, and fixture files are located in the correct directories.
+- The API suite runs successfully:
+
+```bash
+npx playwright test tests/api
+```
+
+- The Git working tree is clean except for intentional changes:
+
+```bash
+git status
+```
+
 ## Troubleshooting
 
 - If requests fail, verify the API is reachable and `API_BASE_URL` is correct.
