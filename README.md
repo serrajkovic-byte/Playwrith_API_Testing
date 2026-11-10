@@ -1,104 +1,109 @@
 # Bookstore API tests
 
-Playwright API test suite for the Books and Authors endpoints of [Fake REST API](https://fakerestapi.azurewebsites.net/). The project uses JavaScript and `@playwright/test`.
+Playwright API test suite for the Books and Authors endpoints of [Fake REST API](https://fakerestapi.azurewebsites.net/).
 
-## Requirements
+## Overview
 
-- Node.js (LTS recommended) and npm
-- Git
-- Network access to the API base URL
+This repository contains a lightweight API automation framework built with Playwright. The purpose is to validate the public REST contract for the demo bookstore API and keep the suite easy to extend as new resources are added.
 
-## Setup
+The project follows a resource-first structure: each domain (Books, Authors) has its own consolidated spec file, while reusable request helpers, fixtures, and utilities live in dedicated folders.
 
-Clone the repository and install the locked dependencies:
+## Team / collaboration notes
 
-```sh
-git clone <repository-url>
-cd <repository-folder>
+This layout is designed for maintainability in a team environment:
+
+- Resource-specific specs keep the business context close to the behavior under test.
+- Request wrappers isolate low-level API calls from the test logic.
+- Fixtures centralize IDs, routes, and shared testing values.
+- Shared helpers reduce duplication and make assertions consistent across endpoints.
+
+This separation makes it easier for multiple people to work on the same project without mixing test logic, API call wrappers, and fixture data in the same file.
+
+## Quick start
+
+```bash
 npm ci
+npm run test:api
+npm run report
 ```
 
-These API tests use Playwright's `request` fixture and do not require browser binaries.
+## Commands
 
-## Run tests and view the report
-
-```sh
-npm test                 # Run all tests
-npm run test:api          # Run the Books and Authors API specs
-npx playwright test --list # List discovered tests
-npm run report            # Open the HTML report from the latest run
+```bash
+npm test            # run all Playwright tests
+npm run test:api    # run the API suite under tests/api
+npx playwright test --list
+npm run report      # open HTML report
 ```
-
-The report is generated in `playwright-report/`. Run tests before `npm run report`. Test output is written to `test-results/`. Both folders are excluded from Git.
-
-## Test coverage
-
-`tests/api_BOOKS_tests.spec.js` contains six Books checks:
-
-- `GET /Books`: successful response, non-empty list, and expected fields
-- `GET /Books/1`: successful response and expected book fields
-- `GET /Books/{id}`: 404 for an unknown ID
-- `POST /Books`: successful response containing submitted fields
-- `PUT /Books/1`: successful response containing updated fields
-- `DELETE /Books/1`: successful response
-
-`tests/api_AUTHORS_tests.spec.js` covers the Authors API:
-
-- `GET /Authors`: successful response, non-empty list, and expected author fields
-- `GET /Authors/1`: successful response and expected author fields
-- `GET /Authors/{id}`: 404 for an unknown ID
-- `POST /Authors`: successful response containing submitted author fields
-- `PUT /Authors/1`: successful response containing updated author fields
-- `DELETE /Authors/1`: successful response
-
-Create, update, and delete tests validate the response. They do not claim that the demo service persists changes between requests.
 
 ## Configuration
 
-The default API base URL is `https://fakerestapi.azurewebsites.net/api/v1/`, configured in `playwright.config.js`. To use a different compatible API, set `API_BASE_URL` before running the tests.
+The default API base URL is configured in `playwright.config.js`:
 
-PowerShell:
-
-```powershell
-$env:API_BASE_URL = 'https://example.com/api/v1/'
-npm run test:api
+```js
+https://fakerestapi.azurewebsites.net/api/v1/
 ```
 
-Bash:
+Override it when needed:
 
-```sh
+```bash
 API_BASE_URL=https://example.com/api/v1/ npm run test:api
 ```
 
 ## Project structure
 
 ```text
-├── .github/workflows/playwright.yml  # GitHub Actions workflow
-├── tests/api_BOOKS_tests.spec.js     # Books API tests
-├── tests/api_AUTHORS_tests.spec.js   # Authors API tests
-├── playwright.config.js              # Playwright and API configuration
-├── package.json                      # Dependencies and npm scripts
-└── package-lock.json                 # Locked dependency versions
+tests/
+└── api/
+    ├── books/
+    │   ├── books-api.js
+    │   └── books.spec.js
+    ├── authors/
+    │   ├── authors-api.js
+    │   └── authors.spec.js
+    ├── requests/
+    │   ├── books-api-requests.js
+    │   └── authors-api-requests.js
+    ├── fixtures/
+    │   └── api-fixtures.js
+    └── helpers/
+        └── api.js
 ```
 
-## Continuous integration
+## Structure responsibilities
 
-The GitHub Actions workflow runs `npx playwright test` on pushes and pull requests targeting `main` or `master`. It installs dependencies and browser binaries, then uploads the HTML report as a 30-day artifact, including when tests fail unless the workflow is cancelled.
+- `books/` and `authors/`: consolidated end-to-end API tests for each resource
+- `requests/`: wrappers around Playwright `request` calls
+- `fixtures/`: data used across tests such as known/unknown IDs and endpoint names
+- `helpers/`: generic utilities such as URL builders and reusable assertion helpers
 
-## Git deliverable
+## Test coverage
 
-The project is maintained in Git. Before committing, inspect the changes and status:
+The suite validates the core CRUD flow for both resources:
 
-```sh
-git status
-git diff
-```
+- GET list
+- GET by ID
+- GET with unknown ID returns 404
+- POST create
+- PUT update
+- DELETE existing record
 
-Commit the project source, lockfile, workflow, and documentation. Do not commit `node_modules/`, `playwright-report/`, or `test-results/`; these are listed in `.gitignore`.
+This gives a stable baseline for verifying API behavior without coupling tests to UI automation.
+
+## Maintenance guidance
+
+When adding a new resource:
+
+1. Create a new folder under `tests/api/<resource>/`
+2. Add a resource payload helper file, for example `resource-api.js`
+3. Add a consolidated `resource.spec.js` file containing all CRUD checks
+4. Add request wrappers under `tests/api/requests/`
+5. Add shared constants/IDs under `tests/api/fixtures/`
+
+This keeps the suite consistent and easy to scale.
 
 ## Troubleshooting
 
-- If `npm ci` fails, check that Node.js and npm are installed and that the network is available.
-- If requests fail, check connectivity to the API and the configured `API_BASE_URL`.
-- If the report is unavailable, run `npm run test:api` first, then `npm run report`.
-- If an API response changes, inspect the response and confirm the service behavior before changing an expected status.
+- If requests fail, verify the API is reachable and `API_BASE_URL` is correct.
+- If a test starts failing after an API contract change, review the response body and update the assertion accordingly.
+- If the report is missing, run tests first and then `npm run report`.

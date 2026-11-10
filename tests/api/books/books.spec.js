@@ -1,30 +1,24 @@
 import { test, expect } from '@playwright/test';
-
-const BOOKS_ENDPOINT = 'Books';
-const KNOWN_BOOK_ID = 1;
-const UNKNOWN_BOOK_ID = 2147483000;
-
-function buildBookPayload(overrides = {}) {
-  return {
-    id: 0,
-    title: 'Demo API Automation Book',
-    description: 'Created by the Playwright API demo',
-    pageCount: 120,
-    excerpt: 'A short test excerpt',
-    publishDate: '2026-11-15T00:00:00.000Z',
-    ...overrides,
-  };
-}
+import { apiFixtures } from '../fixtures/api-fixtures';
+import {
+  getBooks,
+  getBookById,
+  createBook,
+  updateBook,
+  deleteBook,
+} from '../requests/books-api-requests';
+import { buildBookPayload } from './books-api';
 
 test.describe('Books API', () => {
-  test('GET /Books returns a non-empty list with the expected book fields', async ({ request }) => {
-    const response = await request.get(BOOKS_ENDPOINT);
+  test('GET /Books returns a non-empty list with expected fields', async ({ request }) => {
+    const response = await getBooks(request);
 
     expect(response.status()).toBe(200);
 
     const books = await response.json();
     expect(Array.isArray(books)).toBe(true);
     expect(books.length).toBeGreaterThan(0);
+
     expect(books[0]).toEqual(expect.objectContaining({
       id: expect.any(Number),
       title: expect.any(String),
@@ -36,13 +30,13 @@ test.describe('Books API', () => {
   });
 
   test('GET /Books/{id} returns the requested book', async ({ request }) => {
-    const response = await request.get(`${BOOKS_ENDPOINT}/${KNOWN_BOOK_ID}`);
+    const response = await getBookById(request, apiFixtures.books.knownId);
 
     expect(response.status()).toBe(200);
 
     const book = await response.json();
     expect(book).toEqual(expect.objectContaining({
-      id: KNOWN_BOOK_ID,
+      id: apiFixtures.books.knownId,
       title: expect.any(String),
       description: expect.any(String),
       pageCount: expect.any(Number),
@@ -52,14 +46,14 @@ test.describe('Books API', () => {
   });
 
   test('GET /Books/{id} returns 404 for an unknown book ID', async ({ request }) => {
-    const response = await request.get(`${BOOKS_ENDPOINT}/${UNKNOWN_BOOK_ID}`);
+    const response = await getBookById(request, apiFixtures.books.unknownId);
 
     expect(response.status()).toBe(404);
   });
 
-  test('POST /Books creates a book and returns its submitted fields', async ({ request }) => {
+  test('POST /Books creates a book and returns submitted fields', async ({ request }) => {
     const payload = buildBookPayload();
-    const response = await request.post(BOOKS_ENDPOINT, { data: payload });
+    const response = await createBook(request, payload);
 
     expect(response.status()).toBe(200);
 
@@ -71,30 +65,27 @@ test.describe('Books API', () => {
     }));
   });
 
-  test('PUT /Books/{id} updates a book and returns the submitted fields', async ({ request }) => {
+  test('PUT /Books/{id} updates a book', async ({ request }) => {
     const payload = buildBookPayload({
-      id: KNOWN_BOOK_ID,
+      id: apiFixtures.books.knownId,
       title: 'Updated Demo Book',
     });
-    const response = await request.put(
-      `${BOOKS_ENDPOINT}/${KNOWN_BOOK_ID}`,
-      { data: payload },
-    );
+
+    const response = await updateBook(request, apiFixtures.books.knownId, payload);
 
     expect(response.status()).toBe(200);
 
     const updatedBook = await response.json();
     expect(updatedBook).toEqual(expect.objectContaining({
-      id: KNOWN_BOOK_ID,
+      id: apiFixtures.books.knownId,
       title: payload.title,
       pageCount: payload.pageCount,
     }));
   });
 
   test('DELETE /Books/{id} accepts a request for an existing book', async ({ request }) => {
-    const response = await request.delete(`${BOOKS_ENDPOINT}/${KNOWN_BOOK_ID}`);
+    const response = await deleteBook(request, apiFixtures.books.knownId);
 
     expect(response.status()).toBe(200);
   });
 });
-
