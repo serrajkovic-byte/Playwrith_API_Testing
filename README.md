@@ -143,6 +143,19 @@ npx playwright test tests/api
 git status
 ```
 
+## Example workflow for a new resource
+
+```text
+1. Create a new folder under tests/api/<resource>/
+2. Add a payload helper file, for example resource-api.js
+3. Add a consolidated resource.spec.js file containing the CRUD test set
+4. Add request wrappers under tests/api/requests/
+5. Add shared constants and IDs under tests/api/fixtures/
+6. Run the full API suite
+7. Update the README if the resource list changes
+8. Commit and push
+```
+
 ## Troubleshooting
 
 - If requests fail, verify the API is reachable and `API_BASE_URL` is correct.
