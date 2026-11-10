@@ -55,6 +55,23 @@ Override it when needed:
 API_BASE_URL=https://example.com/api/v1/ npm run test:api
 ```
 
+## Playwright config explained
+
+The project uses a compact, production-friendly Playwright setup:
+
+- `testDir: './tests'` tells Playwright where the test sources live.
+- `testMatch: ['**/*.spec.js']` ensures only actual spec files are discovered.
+- `fullyParallel: true` allows independent tests to run in parallel.
+- `forbidOnly: Boolean(process.env.CI)` prevents accidental `test.only` from reaching CI.
+- `retries: process.env.CI ? 2 : 0` retries failing tests only in CI environments.
+- `workers: process.env.CI ? 1 : undefined` keeps CI execution predictable and resource-safe.
+- `timeout: 30000` sets an explicit request/test timeout.
+- `reporter: [['list'], ['html']]` prints concise console output and also generates the HTML report.
+- `baseURL` is the shared API root, so endpoint calls are short and consistent.
+- `trace: 'on-first-retry'` keeps trace data only for failed reruns, which is useful for debugging without overhead.
+
+This configuration keeps the suite simple, portable, and suitable for local work and CI execution.
+
 ## Project structure
 
 ```text
