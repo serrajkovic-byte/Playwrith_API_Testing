@@ -19,6 +19,11 @@ This layout is designed for maintainability in a team environment:
 
 This separation makes it easier for multiple people to work on the same project without mixing test logic, API call wrappers, and fixture data in the same file.
 
+## Resources covered
+
+- Books API
+- Authors API
+
 ## Quick start
 
 ```bash
